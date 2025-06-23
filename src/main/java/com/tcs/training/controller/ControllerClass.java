@@ -21,6 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.training.bean.Customer;
 import com.tcs.training.bean.Login;
+import com.tcs.training.exception.CustomerNotFoundException;
+import com.tcs.training.exception.DepositException;
+import com.tcs.training.exception.WithdrawException;
 import com.tcs.training.service.ServiceClass;
 
 @RestController
@@ -29,6 +32,11 @@ public class ControllerClass {
 
 	@Autowired
 	ServiceClass service;
+	
+	@GetMapping("/")
+	public String publicMsg() {
+		return "Welcome to XYZ Bank";
+	}
 	
 	@GetMapping("/customers")
 	public List<Customer> getAllCustomer() {
@@ -43,8 +51,13 @@ public class ControllerClass {
 	
 	
 	@GetMapping("/customers/{accNo}")
-	public Optional<Customer> getCustomerByAccountNumber(@PathVariable int accNo) {
-		return service.getCustomerByAccountNumber(accNo);
+	public Optional<Customer> getCustomerByAccountNumber(@PathVariable int accNo) throws CustomerNotFoundException {
+		Optional<Customer> customer = service.getCustomerByAccountNumber(accNo);
+		if(customer.isEmpty()) {
+			throw new CustomerNotFoundException();
+		}
+		
+		return customer;
 	}
 	
 	@PutMapping("/customers/{accNo}")
@@ -58,18 +71,26 @@ public class ControllerClass {
 	}
 	
 	@PostMapping("/customers/{accNo}/deposit")
-	public void depositMoneyByAccountNumber(@PathVariable int accNo, @RequestParam int amt) {
-		service.depositMoneyByAccountNumber(accNo,amt);
+	public boolean depositMoneyByAccountNumber(@PathVariable int accNo, @RequestParam int amt) throws DepositException {
+		boolean res = service.depositMoneyByAccountNumber(accNo,amt);
+		if(res==false) {
+			throw new DepositException();
+		}
+		return res;
 	}
 	
 	@PostMapping("/customers/{accNo}/withdraw")
-	public void withdrawMoneyByAccountNumber(@PathVariable int accNo, @RequestParam int amt) {
-		service.withdrawMoneyByAccountNumber(accNo,amt);
+	public boolean withdrawMoneyByAccountNumber(@PathVariable int accNo, @RequestParam int amt) throws WithdrawException {
+		boolean res = service.withdrawMoneyByAccountNumber(accNo,amt);
+		if(res==false) {
+			throw new WithdrawException();
+		}
+		return res;
 	}
 	
 	@PostMapping("/customers/{accNo1}/fundTransfer")
-	public void fundTransferByAccountNumber(@PathVariable int accNo1, @RequestParam int amt, @RequestParam int accNo2) {
-		service.fundTransferByAccountNumber(accNo1,amt,accNo2);
+	public boolean fundTransferByAccountNumber(@PathVariable int accNo1, @RequestParam int amt, @RequestParam int accNo2) {
+		return service.fundTransferByAccountNumber(accNo1,amt,accNo2);
 	}
 	
 }

@@ -169,7 +169,7 @@ public class ServiceTest {
         assertTrue(serviceClass.depositMoneyByAccountNumber(existing.getAccNo(),660));
 
         verify(customerRepo).findById(existing.getAccNo());
-        verify(transactionsRepo).save(any(Transaction.class));
+        verify(transactionsRepo).save(any(Transaction.class)); //using any since new Transaction object i'm creating
     }
 
 	
@@ -188,12 +188,17 @@ public class ServiceTest {
     @Test
     void testWithdrawByAccountNumber_Success(){
         Customer existing = new Customer(11,"roop singh","hindon",4600.66);
-
+        Transaction transaction = new Transaction(existing.getAccNo(),existing.getAccNo(),450.00,null);
+        
         when(customerRepo.findById(existing.getAccNo())).thenReturn(Optional.of(existing));
+        when(transactionsRepo.save(any(Transaction.class))).thenReturn(transaction); //At run-time, new Transaction is created, that's why use "any"
+
 
         assertTrue(serviceClass.withdrawMoneyByAccountNumber(existing.getAccNo(),660));
+        
 
         verify(customerRepo).findById(existing.getAccNo());
+        verify(transactionsRepo).save(any(Transaction.class)); //using any since new Transaction object i'm creating.
     }
 
     
@@ -225,9 +230,11 @@ public class ServiceTest {
     void testFundTransferByAccountNumber_Success(){
         Customer customer1 = new Customer(11,"vijay singh","delhi",7800.99);
         Customer customer2 = new Customer(11,"roop singh","gzb",9887.99);
-
+        Transaction transaction = new Transaction(customer1.getAccNo(),customer2.getAccNo(),450.00,null);
+        
         when(customerRepo.findById(customer1.getAccNo())).thenReturn(Optional.of(customer1));
         when(customerRepo.findById(customer2.getAccNo())).thenReturn(Optional.of(customer2));
+        when(transactionsRepo.save(any(Transaction.class))).thenReturn(transaction);
         when(customerRepo.save(customer1)).thenReturn(customer1);
         when(customerRepo.save(customer2)).thenReturn(customer2);
 
@@ -235,6 +242,7 @@ public class ServiceTest {
 
         verify(customerRepo).findById(customer1.getAccNo());
         verify(customerRepo).findById(customer2.getAccNo());
+        verify(transactionsRepo).save(any(Transaction.class));
         verify(customerRepo).save(customer1);
         verify(customerRepo).save(customer2);
     }
