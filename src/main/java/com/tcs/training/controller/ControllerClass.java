@@ -21,8 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.training.bean.Customer;
 import com.tcs.training.bean.Login;
+import com.tcs.training.exception.CreateAccountException;
 import com.tcs.training.exception.CustomerNotFoundException;
+import com.tcs.training.exception.DeleteCustomerException;
 import com.tcs.training.exception.DepositException;
+import com.tcs.training.exception.UpdateCustomerException;
 import com.tcs.training.exception.WithdrawException;
 import com.tcs.training.service.ServiceClass;
 
@@ -45,8 +48,12 @@ public class ControllerClass {
 	
 	
 	@PostMapping("/createAccount")
-	public void createAccount(@RequestParam int accNo, @RequestParam String name, @RequestParam String branch, @RequestParam Double balance) throws SQLException {
-		service.createAccount(accNo,name,branch,balance);
+	public boolean createAccount(@RequestParam int accNo, @RequestParam String name, @RequestParam String branch, @RequestParam Double balance) throws SQLException, CreateAccountException {
+		boolean res = service.createAccount(accNo,name,branch,balance);
+		if(res==false) {
+			throw new CreateAccountException();
+		}
+		return res;
 	}
 	
 	
@@ -61,13 +68,21 @@ public class ControllerClass {
 	}
 	
 	@PutMapping("/customers/{accNo}")
-	public void updateCustomerByAccountNumber(@PathVariable int accNo,@RequestBody Customer customer) {
-		service.updateCustomerByAccountNumber(accNo,customer);
+	public boolean updateCustomerByAccountNumber(@PathVariable int accNo,@RequestBody Customer customer) throws UpdateCustomerException {
+		boolean res = service.updateCustomerByAccountNumber(accNo,customer);
+		if(res==false) {
+			throw new UpdateCustomerException();
+		}
+		return res;
 	}
 	
 	@DeleteMapping("/customers/{accNo}")
-	public void deleteCustomerByAccountNumber(@PathVariable int accNo) {
-		service.deleteCustomerByAccountNumber(accNo);
+	public boolean deleteCustomerByAccountNumber(@PathVariable int accNo) throws DeleteCustomerException {
+		boolean res = service.deleteCustomerByAccountNumber(accNo);
+		if(res==false) {
+			throw new DeleteCustomerException();
+		}
+		return res;
 	}
 	
 	@PostMapping("/customers/{accNo}/deposit")

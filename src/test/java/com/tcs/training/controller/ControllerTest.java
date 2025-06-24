@@ -1,7 +1,10 @@
 package com.tcs.training.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tcs.training.bean.Customer;
 import com.tcs.training.bean.Transaction;
+//import com.tcs.training.security.MyUserDetailsService;
+//import com.tcs.training.security.SecurityConfig;
 import com.tcs.training.service.ServiceClass;
 
 import org.assertj.core.error.ShouldHaveSameSizeAs;
@@ -9,20 +12,26 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.hamcrest.Matchers.*;
 
+//import java.awt.PageAttributes.MediaType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-@WebMvcTest
+@WebMvcTest(controllers = ControllerClass.class)
+//@Import(SecurityConfig.class)
 public class ControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -30,6 +39,10 @@ public class ControllerTest {
     @MockBean
     private ServiceClass serviceClass;
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    
+//    @MockBean
+//    private MyUserDetailsService myUserDetailsService;
     
     @Test
     void testGetAllCustomer_Success() throws Exception {
@@ -56,6 +69,87 @@ public class ControllerTest {
     }
     
     @Test
+    void testCreateAccount_Success() throws Exception {
+    	Customer existing = new Customer(101,"roop singh","hindon",4600.66);
+        when(serviceClass.createAccount(existing.getAccNo(), "roop singh", "hindon", 4600.66)).thenReturn(true);
+
+        mockMvc.perform(post("/xyz/bank/createAccount")
+        		.param("accNo", String.valueOf(existing.getAccNo()))
+                .param("name", "roop singh")
+                .param("branch", "hindon")
+                .param("balance", "4600.66"))
+           .andExpect(status().isOk())
+           .andExpect(content().string("true"));
+    }
+    
+    @Test
+    void testCreateAccount_Failure() throws Exception {
+    	Customer existing = new Customer(101,"","hindon",4600.66);
+        when(serviceClass.createAccount(existing.getAccNo(), "", "hindon", 4600.66)).thenReturn(false);
+
+        mockMvc.perform(post("/xyz/bank/createAccount")
+        		.param("accNo", String.valueOf(existing.getAccNo()))
+                .param("name", "")
+                .param("branch", "hindon")
+                .param("balance", "4600.66"))
+           .andExpect(status().isNotFound())
+           .andExpect(content().string("Can't Create Account.."));
+    }
+
+    @Test
+    void testUpdateCustomerByAccountNumber_Success() throws Exception {
+        Customer customer = new Customer(11,"Rahul", "Delhi", 7000.0);
+        Customer update = new Customer("Rajesh", "Delhi", 7000.0);
+        when(serviceClass.updateCustomerByAccountNumber(eq(customer.getAccNo()), any(Customer.class))).thenReturn(true);
+
+        mockMvc.perform(put("/xyz/bank/customers/{accNo}",customer.getAccNo())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(update)))
+        		.andExpect(status().isOk())
+        		.andExpect(content().string("true"));
+    }
+    
+    
+    @Test
+    void testUpdateCustomerByAccountNumber_Failure() throws Exception {
+//        Customer customer = new Customer(11,"Rahul", "Delhi", 7000.0);
+        Customer update = new Customer("Rajesh", "Delhi", 7000.0);
+        when(serviceClass.updateCustomerByAccountNumber(eq(9999), any(Customer.class))).thenReturn(false);
+
+        mockMvc.perform(put("/xyz/bank/customers/{accNo}",9999)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(update)))
+        		.andExpect(status().isNotFound())
+        		.andExpect(content().string("Update Error.."));
+    }
+    
+    @Test
+    void testDeleteCustomerByAccountNumber_Success() throws Exception {
+        Customer customer = new Customer(11,"Rahul", "Delhi", 7000.0);
+//        Customer update = new Customer("Rajesh", "Delhi", 7000.0);
+        when(serviceClass.deleteCustomerByAccountNumber(customer.getAccNo())).thenReturn(true);
+
+        mockMvc.perform(delete("/xyz/bank/customers/{accNo}",customer.getAccNo())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(customer)))
+        		.andExpect(status().isOk())
+        		.andExpect(content().string("true"));
+    }
+    
+    @Test
+    void testDeleteCustomerByAccountNumber_Failure() throws Exception {
+//        Customer customer = new Customer(11,"Rahul", "Delhi", 7000.0);
+//        Customer update = new Customer("Rajesh", "Delhi", 7000.0);
+        when(serviceClass.deleteCustomerByAccountNumber(9999)).thenReturn(false);
+
+        mockMvc.perform(delete("/xyz/bank/customers/{accNo}",9999)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString("")))
+        		.andExpect(status().isNotFound())
+        		.andExpect(content().string("Delete Error.."));
+    }
+    
+    @Test
     void testDepositByAccountNumber_Success() throws Exception {
     	 Customer existing = new Customer(11,"roop singh","hindon",4600.66);
 //         Transaction transaction = new Transaction(existing.getAccNo(),existing.getAccNo(),450.00,null);
@@ -67,6 +161,8 @@ public class ControllerTest {
          	.andExpect(status().isOk())
          	.andExpect(content().string("true")); //body
     }
+    
+    
     
     @Test
     void testDepositByAccountNumber_Failure() throws Exception {

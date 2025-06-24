@@ -2,10 +2,14 @@ package com.tcs.training.bean;
 
 import java.util.Random;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+//import javax.persistence.Column;
+//import javax.persistence.Entity;
+//import javax.persistence.Id;
+//import javax.persistence.Table;
 
 
 
@@ -47,6 +51,13 @@ public class Customer {
 		this.name = name;
 		this.branch = branch;
 		this.balance = balance;
+	}
+
+	public Customer(String string, String string2, double d) {
+		// TODO Auto-generated constructor stub
+		this.name = string;
+		this.branch = string2;
+		this.balance = d;
 	}
 
 	public int getAccNo() {

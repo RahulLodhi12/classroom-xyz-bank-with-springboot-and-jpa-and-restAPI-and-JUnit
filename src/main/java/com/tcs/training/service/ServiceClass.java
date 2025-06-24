@@ -40,7 +40,6 @@ public class ServiceClass{
             System.out.println("Not Found..");
             return false;
         }
-//		dao.updateCustomerByAccountNumber(accNo,customer);
 	}
 
 	public boolean deleteCustomerByAccountNumber(int accNo) {
@@ -53,7 +52,6 @@ public class ServiceClass{
             System.out.println("Not Found..");
             return false;
         }
-//		dao.deleteCustomerByAccountNumber(accNo);
 	}
 
 	public boolean depositMoneyByAccountNumber(int accNo, int amt) {
